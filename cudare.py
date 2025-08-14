@@ -1777,8 +1777,9 @@ def iter_dependent_param_combos(pr):
     del master_h1_indicators_np, master_h4_indicators_np 
     del open_p_np, high_p_np, low_p_np, close_p_np, volume_np
     gc.collect()
-        param_id_parts.append(f"Risk{c_id['risk_per_trade_percentage']*100:.1f}%")
-        param_id_str = "_".join(map(str, param_id_parts))
+
+            param_id_parts.append(f"Risk{c_id['risk_per_trade_percentage']*100:.1f}%")
+            param_id_str = "_".join(map(str, param_id_parts))
 
 
         if param_id_str not in seen_ids_final:
