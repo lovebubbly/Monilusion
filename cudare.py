@@ -1776,18 +1776,7 @@ def iter_dependent_param_combos(pr):
     logger.info(f"공통 데이터 GPU 전송 완료. 소요 시간: {gpu_common_transfer_duration:.2f} 초")
     del master_h1_indicators_np, master_h4_indicators_np 
     del open_p_np, high_p_np, low_p_np, close_p_np, volume_np
-    gc.collect()"EMA{c_id['ema_short_h1']}-{c_id['ema_long_h1']}-H4_{c_id['ema_htf']}")
-        if c_id.get('use_adx_filter', False): param_id_parts.append(f"ADX{c_id['adx_period']}_{c_id['adx_threshold']}")
-        else: param_id_parts.append("NoADX")
-        param_id_parts.append(f"SL{c_id['atr_multiplier_sl']}ATR{c_id['atr_period_sl']}")
-        if c_id['exit_strategy_type'] == 'FixedRR': param_id_parts.append(f"RR{c_id['risk_reward_ratio']}")
-        elif c_id['exit_strategy_type'] == 'TrailingATR': param_id_parts.append(f"Trail{c_id['trailing_atr_multiplier']}ATR{c_id['trailing_atr_period']}")
-        if c_id.get('use_htf_ema_filter', False): param_id_parts.append("H4Filt")
-        else: param_id_parts.append("NoH4Filt")
-        if c_id.get('use_volume_filter', False): param_id_parts.append(f"VolFilt{c_id['volume_sma_period']}")
-        else: param_id_parts.append("NoVolFilt")
-        if c_id.get('use_rsi_filter', False): param_id_parts.append(f"RSI{c_id['rsi_period']}_{c_id['rsi_threshold_long']}-{c_id['rsi_threshold_short']}")
-        else: param_id_parts.append("NoRSIFilt")
+    gc.collect()
         param_id_parts.append(f"Risk{c_id['risk_per_trade_percentage']*100:.1f}%")
         param_id_str = "_".join(map(str, param_id_parts))
 
