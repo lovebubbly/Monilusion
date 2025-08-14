@@ -1,0 +1,39 @@
+--- 최종 결과 요약 (상위 20개 또는 전체) ---
+2025-08-14 10:06:05,491 - INFO - MainProcess - emacrossmart.py:824 - 
+                                                 Param ID  PnL %  Num Trades  Win Rate %  Profit Factor  MDD %  error
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+          EMA14-100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+          EMA14-100_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+          EMA14-100_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+ EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+          EMA14-100_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+EMA14-100_H4Filt100_SL2.6ATR21_RR3.0_RSI21_52-47_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+          EMA14-100_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%  80.26         129       29.46            1.6  17.97  False
+
+2025-08-14 10:06:05,491 - INFO - MainProcess - emacrossmart.py:826 - 
+*** 최종 최고 성과 (total_net_pnl_percentage 기준, 최소 10회 거래) ***
+2025-08-14 10:06:05,791 - INFO - MainProcess - emacrossmart.py:520 - 
+--- 백테스팅 성과 보고서 (ID: EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%) ---
+2025-08-14 10:06:05,792 - INFO - MainProcess - emacrossmart.py:524 - Initial Balance             : 10000
+Final Balance               : 18025.51
+Total Net Pnl               : 8025.51
+Total Net Pnl Percentage    : 80.26
+Num Trades                  : 129
+Num Wins                    : 38
+Num Losses                  : 91
+Win Rate Percentage         : 29.46
+Profit Factor               : 1.6
+Max Drawdown Percentage     : 17.97
+--- 보고서 종료 (ID: EMA14-100_H4Filt50_SL2.6ATR21_RR3.0_RSI21_52-45_Risk2.0%) ---

@@ -1,0 +1,18 @@
+# API KEY   
+.env
+
+# csv files
+*.csv
+
+#json files
+*.json
+
+#log files
+*.log
+
+#big datas
+*.parquet
+
+
+# 가상환경 폴더 무시
+venv/
