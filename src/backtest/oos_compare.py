@@ -34,13 +34,13 @@ def load_metrics(path: str) -> Dict:
 
 
 def run_cudare_for_preset(preset: str, python_exec: str) -> None:
-    print(f"[oos_compare] Running emacrossmart.py for preset={preset} (baseline + improved)...", flush=True)
+    print(f"[oos_compare] Running cudare.py for preset={preset} (baseline + improved)...", flush=True)
     env = os.environ.copy()
     env["RUN_BOTH"] = "1"
     env["PERIOD_PRESET"] = preset
     # Ensure output dir exists
     os.makedirs(OUT_DIR, exist_ok=True)
-    subprocess.run([python_exec, os.path.join(os.getcwd(), "emacrossmart.py")], env=env, check=True)
+    subprocess.run([python_exec, os.path.join(os.getcwd(), "cudare.py")], env=env, check=True)
 
 
 def compare_pair(preset: str) -> Tuple[Dict, Dict]:
@@ -76,7 +76,7 @@ def print_table(preset: str, base: Dict, imp: Dict) -> None:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Run OOS head-to-head for baseline vs improved using emacrossmart.py presets.")
+    ap = argparse.ArgumentParser(description="Run OOS head-to-head for baseline vs improved using cudare.py presets.")
     ap.add_argument("--presets", nargs="*", default=["recent", "stress_july"], help="List of PERIOD_PRESET values")
     ap.add_argument("--skip-run", action="store_true", help="Only compare latest JSONs, do not run cudare")
     args = ap.parse_args()
