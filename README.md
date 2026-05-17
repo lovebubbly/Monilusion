@@ -33,6 +33,7 @@ See [SECURITY.md](SECURITY.md) for the security checklist.
 | `tools/run_phase53_active_shadow_cycle.sh` | macOS/Linux wrapper for the Phase53 cycle |
 | `tools/create_phase53_migration_bundle.py` | Builds the Mac migration artifact bundle |
 | `docs/phase53_mac_mini_migration.md` | Mac mini migration runbook |
+| `docs/phase53_session_handoff.md` | Context pack for fresh Codex sessions |
 
 ## Setup
 
@@ -137,6 +138,8 @@ Build the transfer bundle on Windows:
 ```
 
 Then follow [docs/phase53_mac_mini_migration.md](docs/phase53_mac_mini_migration.md). The bundle is intentionally ignored by Git because it contains generated data and runtime evidence.
+
+When starting a new Codex session on the Mac, read [docs/phase53_session_handoff.md](docs/phase53_session_handoff.md) first so the session knows the gate posture and the Windows-to-Mac division of labor.
 
 ## Validation
 

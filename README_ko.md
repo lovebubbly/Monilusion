@@ -33,6 +33,7 @@ Monilusion은 BTCUSDT Binance USD-M 선물 전략을 연구, 검증, 섀도우 �
 | `tools/run_phase53_active_shadow_cycle.sh` | macOS/Linux용 Phase53 실행 래퍼 |
 | `tools/create_phase53_migration_bundle.py` | Mac 이관용 번들 생성 |
 | `docs/phase53_mac_mini_migration.md` | Mac mini 이관 절차서 |
+| `docs/phase53_session_handoff.md` | 새 Codex 세션용 컨텍스트 팩 |
 
 ## 설치
 
@@ -137,6 +138,8 @@ Windows에서 이관 번들을 생성합니다.
 ```
 
 이후 [docs/phase53_mac_mini_migration.md](docs/phase53_mac_mini_migration.md)를 따라가면 됩니다. 번들은 생성 데이터와 런타임 증거를 포함하므로 Git에 올리지 않습니다.
+
+Mac에서 새 Codex 세션을 시작할 때는 [docs/phase53_session_handoff.md](docs/phase53_session_handoff.md)를 먼저 읽히세요. 현재 gate 상태와 Windows/Mac 역할 분리가 들어 있습니다.
 
 ## 검증
 

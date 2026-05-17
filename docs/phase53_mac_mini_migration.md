@@ -2,6 +2,8 @@
 
 This runbook moves the BTCUSDT 1H Phase53 no-order live shadow evidence collector from the Windows workstation to a more stable Mac mini.
 
+For a fresh Codex session on the Mac, read `docs/phase53_session_handoff.md` first. It contains the missing conversation context, the current gate posture, and the prompt to paste into a new session.
+
 ## What Moves Through Git
 
 Commit and push source code, wrappers, tests, and docs:
