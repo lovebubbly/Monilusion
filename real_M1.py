@@ -29,6 +29,15 @@ from src.policy.time_windows import is_trade_allowed_by_time
 from src.position.sizing import on_trade_closed, can_open_new_trade, MAX_CONSECUTIVE_LOSSES, COOLDOWN_PERIOD_BARS
 from src.exits.trailing import update_and_check_atr_trailing_stop, check_fixed_stop_loss
 
+LIVE_TRADING_CONFIRMATION = "YES_I_UNDERSTAND"
+
+
+def env_flag(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
 # --- 로깅 설정 ---
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
 log_file_path = 'live_trading_bot_phase1.log' 
@@ -104,13 +113,35 @@ def send_email_notification(subject, body):
 
 
 # --- 바이낸스 클라이언트 초기화 ---
-USE_TESTNET = False # <--- 실매매 시 False, 테스트넷에서 테스트할 때는 True로 설정!
+USE_TESTNET = env_flag('BINANCE_USE_TESTNET', default=True)
+DRY_RUN = env_flag('DRY_RUN', default=True)
+ALLOW_LIVE_TRADING = os.getenv('ALLOW_LIVE_TRADING', '')
+
+if not USE_TESTNET and not DRY_RUN and ALLOW_LIVE_TRADING != LIVE_TRADING_CONFIRMATION:
+    logger.critical(
+        "실계정 주문 실행이 차단되었습니다. 실계정 주문을 허용하려면 "
+        "ALLOW_LIVE_TRADING=YES_I_UNDERSTAND 및 DRY_RUN=false를 명시하세요."
+    )
+    exit()
+
 client = Client(API_KEY, API_SECRET, testnet=USE_TESTNET)
-logger.info(f"바이낸스 클라이언트 초기화 완료. (테스트넷 사용: {USE_TESTNET})")
+logger.info(f"바이낸스 클라이언트 초기화 완료. (테스트넷 사용: {USE_TESTNET}, DRY_RUN: {DRY_RUN})")
 if not USE_TESTNET:
-    logger.warning("*" * 30); logger.warning("****** 경고: 실제 매매 계정으로 실행됩니다! ******"); logger.warning("*" * 30)
+    logger.warning("*" * 30); logger.warning("****** 경고: 실제 매매 계정 API로 실행됩니다! ******"); logger.warning("*" * 30)
 else:
     logger.info("테스트넷 계정으로 실행됩니다. 실제 자금이 사용되지 않습니다.")
+if DRY_RUN:
+    logger.warning("DRY_RUN 활성화: 주문 생성, 주문 취소, 레버리지 변경을 실제로 실행하지 않습니다.")
+
+
+def summarize_order(order):
+    if not isinstance(order, dict):
+        return str(order)
+    allowed_keys = (
+        'orderId', 'symbol', 'side', 'type', 'status', 'origQty',
+        'executedQty', 'avgPrice', 'stopPrice', 'reduceOnly'
+    )
+    return {key: order.get(key) for key in allowed_keys if key in order}
 
 # --- 거래 파라미터 중앙 관리 (TRADING_PARAMS) ---
 TRADING_PARAMS = {
@@ -348,31 +379,43 @@ def place_market_order(symbol_p, side_p, qty_p):
     try:
         fmt_qty = format_quantity(qty_p)
         if fmt_qty is None or float(fmt_qty) < TRADING_PARAMS['min_contract_size']: logger.error(f"시장가 주문 수량({fmt_qty}) 유효하지 않음."); return None
-        logger.info(f"시장가 주문: {symbol_p}, {side_p}, Qty: {fmt_qty}")
+        if DRY_RUN:
+            logger.warning(f"DRY_RUN: 시장가 주문 생략: {symbol_p}, {side_p}, Qty: {fmt_qty}")
+            return None
+        logger.info(f"시장가 주문 요청: {symbol_p}, {side_p}, Qty: {fmt_qty}")
         order = client.futures_create_order(symbol=symbol_p, side=side_p, type=FUTURE_ORDER_TYPE_MARKET, quantity=fmt_qty)
-        logger.info(f"시장가 주문 성공: {order}"); return order
+        logger.info(f"시장가 주문 성공: {summarize_order(order)}"); return order
     except Exception as e: logger.error(f"시장가 주문 오류: {e}", exc_info=True); send_email_notification(f"봇 오류: 시장가 주문 실패", f"심볼: {symbol_p}, Side: {side_p}, Qty: {fmt_qty}\n오류: {e}"); return None
 
 def place_stop_loss_order(symbol_p, side_p, qty_p, stop_p):
     try:
         fmt_qty, fmt_stop_p = format_quantity(qty_p), format_price(stop_p)
         if fmt_qty is None or float(fmt_qty) < TRADING_PARAMS['min_contract_size'] or fmt_stop_p is None: logger.error(f"SL 주문 수량/가격 유효하지 않음 Qty={fmt_qty}, StopP={fmt_stop_p}."); return None
-        logger.info(f"SL 주문: {symbol_p}, {side_p}, Qty: {fmt_qty}, StopPrice: {fmt_stop_p}")
+        if DRY_RUN:
+            logger.warning(f"DRY_RUN: SL 주문 생략: {symbol_p}, {side_p}, Qty: {fmt_qty}, StopPrice: {fmt_stop_p}")
+            return None
+        logger.info(f"SL 주문 요청: {symbol_p}, {side_p}, Qty: {fmt_qty}, StopPrice: {fmt_stop_p}")
         order = client.futures_create_order(symbol=symbol_p, side=side_p, type=FUTURE_ORDER_TYPE_STOP_MARKET, quantity=fmt_qty, stopPrice=fmt_stop_p, reduceOnly=True)
-        logger.info(f"SL 주문 성공: {order}"); return order
+        logger.info(f"SL 주문 성공: {summarize_order(order)}"); return order
     except Exception as e: logger.error(f"SL 주문 오류: {e}", exc_info=True); send_email_notification(f"봇 오류: SL 주문 실패", f"심볼: {symbol_p}, Side: {side_p}, Qty: {fmt_qty}, StopP: {fmt_stop_p}\n오류: {e}"); return None
 
 def place_take_profit_order(symbol_p, side_p, qty_p, stop_p):
     try:
         fmt_qty, fmt_stop_p = format_quantity(qty_p), format_price(stop_p)
         if fmt_qty is None or float(fmt_qty) < TRADING_PARAMS['min_contract_size'] or fmt_stop_p is None: logger.error(f"TP 주문 수량/가격 유효하지 않음 Qty={fmt_qty}, StopP={fmt_stop_p}."); return None
-        logger.info(f"TP 주문: {symbol_p}, {side_p}, Qty: {fmt_qty}, StopPrice: {fmt_stop_p}")
+        if DRY_RUN:
+            logger.warning(f"DRY_RUN: TP 주문 생략: {symbol_p}, {side_p}, Qty: {fmt_qty}, StopPrice: {fmt_stop_p}")
+            return None
+        logger.info(f"TP 주문 요청: {symbol_p}, {side_p}, Qty: {fmt_qty}, StopPrice: {fmt_stop_p}")
         order = client.futures_create_order(symbol=symbol_p, side=side_p, type=FUTURE_ORDER_TYPE_TAKE_PROFIT_MARKET, quantity=fmt_qty, stopPrice=fmt_stop_p, reduceOnly=True)
-        logger.info(f"TP 주문 성공: {order}"); return order
+        logger.info(f"TP 주문 성공: {summarize_order(order)}"); return order
     except Exception as e: logger.error(f"TP 주문 오류: {e}", exc_info=True); send_email_notification(f"봇 오류: TP 주문 실패", f"심볼: {symbol_p}, Side: {side_p}, Qty: {fmt_qty}, StopP: {fmt_stop_p}\n오류: {e}"); return None
 
 def cancel_all_open_orders(symbol_p):
     try:
+        if DRY_RUN:
+            logger.warning(f"DRY_RUN: {symbol_p} 미체결 주문 취소 생략.")
+            return True
         orders = client.futures_get_open_orders(symbol=symbol_p)
         if not orders: logger.info(f"{symbol_p} 미체결 주문 없음."); return True
         logger.info(f"{symbol_p} 미체결 주문 {len(orders)}개 취소 시도...")
@@ -536,8 +579,25 @@ def main_trading_job():
                     act_lev = int(item['brackets'][0]['initialLeverage']); break
         if act_lev == 0: logger.warning(f"{TRADING_PARAMS['symbol']} 레버리지 가져오기 실패. API 응답: {lev_info}")
         elif act_lev != TRADING_PARAMS['leverage_config']:
-            logger.info(f"레버리지 변경: {act_lev} -> {TRADING_PARAMS['leverage_config']}"); client.futures_change_leverage(symbol=TRADING_PARAMS['symbol'], leverage=TRADING_PARAMS['leverage_config'])
+            if DRY_RUN:
+                logger.warning(f"DRY_RUN: 레버리지 변경 생략: {act_lev} -> {TRADING_PARAMS['leverage_config']}")
+            else:
+                logger.info(f"레버리지 변경: {act_lev} -> {TRADING_PARAMS['leverage_config']}"); client.futures_change_leverage(symbol=TRADING_PARAMS['symbol'], leverage=TRADING_PARAMS['leverage_config'])
     except Exception as e_setup: logger.error(f"초기 설정 중 오류: {e_setup}", exc_info=True); send_email_notification(f"봇 오류: 초기 설정 실패", f"오류 내용: {e_setup}"); return
+
+    now_utc = pd.Timestamp.now(tz='UTC')
+    interval_pd = TRADING_PARAMS['interval_primary'].replace('m','min').replace('h','H').replace('d','D').replace('w','W')
+    current_candle_start_utc = now_utc.floor(interval_pd)
+    target_candle_analyze_utc = current_candle_start_utc - pd.Timedelta(TRADING_PARAMS['interval_primary'])
+
+    df_raw = get_historical_data_primary(TRADING_PARAMS['symbol'], TRADING_PARAMS['interval_primary'], TRADING_PARAMS['data_fetch_limit_primary'])
+    if df_raw is None or df_raw.empty: logger.warning(f"{TRADING_PARAMS['interval_primary']} 데이터 수집 실패."); return
+
+    save_data_to_sqlite(df_raw, TRADING_PARAMS['db_path'], TRADING_PARAMS['klines_table_name'])
+
+    df_proc = calculate_indicators(df_raw.copy())
+    min_candles_sig = max(TRADING_PARAMS['ema_long_period'], TRADING_PARAMS['rsi_period'], TRADING_PARAMS['atr_period_sl']) + 5
+    if df_proc is None or df_proc.empty or len(df_proc) < min_candles_sig: logger.warning(f"지표 계산 실패/데이터 부족 ({len(df_proc) if df_proc is not None else 0} < {min_candles_sig})."); return
 
     check_position_status_and_sync()
     if current_position_side != 'None':
@@ -581,25 +641,12 @@ def main_trading_job():
         logger.info(f"주기적 매매 로직 종료: {datetime.now(tz=kst).strftime('%Y-%m-%d %H:%M:%S %Z')}\n{'-'*60}\n")
         return
 
-    now_utc = pd.Timestamp.now(tz='UTC')
-    interval_pd = TRADING_PARAMS['interval_primary'].replace('m','min').replace('h','H').replace('d','D').replace('w','W')
-    current_candle_start_utc = now_utc.floor(interval_pd)
-    target_candle_analyze_utc = current_candle_start_utc - pd.Timedelta(TRADING_PARAMS['interval_primary'])
-
     if last_signal_check_time is not None and last_signal_check_time >= target_candle_analyze_utc:
         logger.info(f"이미 최신 완성 캔들({target_candle_analyze_utc}, 로컬 마지막 확인: {last_signal_check_time}) 분석 완료. 대기.")
         logger.info(f"주기적 매매 로직 종료 (중복 방지): {datetime.now(tz=kst).strftime('%Y-%m-%d %H:%M:%S %Z')}\n{'-'*60}\n")
         return
         
     logger.info(f"새로운 완성 캔들({target_candle_analyze_utc}) 진입 신호 확인 시도...")
-    df_raw = get_historical_data_primary(TRADING_PARAMS['symbol'], TRADING_PARAMS['interval_primary'], TRADING_PARAMS['data_fetch_limit_primary'])
-    if df_raw is None or df_raw.empty: logger.warning(f"{TRADING_PARAMS['interval_primary']} 데이터 수집 실패."); return
-    
-    save_data_to_sqlite(df_raw, TRADING_PARAMS['db_path'], TRADING_PARAMS['klines_table_name'])
-
-    df_proc = calculate_indicators(df_raw.copy())
-    min_candles_sig = max(TRADING_PARAMS['ema_long_period'], TRADING_PARAMS['rsi_period'], TRADING_PARAMS['atr_period_sl']) + 5
-    if df_proc is None or df_proc.empty or len(df_proc) < min_candles_sig: logger.warning(f"지표 계산 실패/데이터 부족 ({len(df_proc) if df_proc is not None else 0} < {min_candles_sig})."); return
     if df_proc.index[-1] < target_candle_analyze_utc: logger.warning(f"가져온 데이터 마지막 캔들({df_proc.index[-1]}) < 분석 대상({target_candle_analyze_utc}). 데이터 동기화 문제?"); return
 
     # --- Phase 1 Filters ---

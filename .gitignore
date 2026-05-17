@@ -1,21 +1,37 @@
-# API KEY   
+# Secrets and local environment
 .env
+.env.*
+!.env.example
 
-# csv files
-*.csv
+# Python/runtime cache
+__pycache__/
+*.py[cod]
+*$py.class
 
-#json files
-*.json
-
-#log files
-*.log
-
-#big datas
-*.parquet
-
-
-# 가상환경 폴더 무시
+# Virtual environments
 venv/
+.venv/
 
-# Large data files
-data/**/*.npy
+# Logs, local state, and runtime databases
+*.log
+*.sqlite
+*.sqlite3
+position_state_*.json
+smart_download_progress.json
+download.log
+
+# Data and generated experiment artifacts
+data/
+daily_cache/
+cache/
+wfa_optimized_params_output/
+migration_bundles/
+*.parquet
+*.csv
+*.npy
+
+# Model artifacts: keep manifests/configs in Git, store binaries externally.
+saved_models/
+*.pth
+*.pkl
+*.joblib
